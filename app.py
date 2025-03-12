@@ -35,15 +35,21 @@ def chat():
         if not OPENAI_API_KEY:
             return jsonify({"error": "Missing OpenAI API Key"}), 500
 
-        # ✅ Generate AI response using OpenAI API
+        # ✅ Send request to OpenAI API
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": user_message}]
         )
 
-        return jsonify({"response": response["choices"][0]["message"]["content"]})
+        # ✅ Ensure response exists
+        if "choices" in response and len(response["choices"]) > 0:
+            bot_reply = response["choices"][0]["message"]["content"]
+        else:
+            bot_reply = "⚠️ No valid response from OpenAI."
+
+        return jsonify({"response": bot_reply})
     
-    except OpenAIError as e:  # ✅ Fixed OpenAI error handling
+    except OpenAIError as e:  # ✅ Catch OpenAI-specific errors
         return jsonify({"error": f"OpenAI API Error: {str(e)}"}), 500
     except Exception as e:
         return jsonify({"error": f"Server Error: {str(e)}"}), 500

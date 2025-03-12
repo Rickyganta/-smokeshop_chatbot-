@@ -50,6 +50,8 @@ def chat():
     ai_response = get_chatbot_response(user_input)
     return jsonify({"response": ai_response})
 
-if __name__ == '__main__':
-    app.run(debug=True)
+if __name__ == "__main__":
+    import os
+    port = int(os.environ.get("PORT", 10000))  # Default to 10000 if PORT not set
+    app.run(host="0.0.0.0", port=port, debug=True)
 

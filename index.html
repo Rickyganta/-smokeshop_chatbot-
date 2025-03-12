@@ -1,100 +1,127 @@
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const sendButton = document.getElementById("sendButton");
-        const voiceButton = document.getElementById("voiceButton");
-        const userInput = document.getElementById("userInput");
-        const chatbox = document.getElementById("chatbox");
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot</title>
+    <link rel="icon" href="data:,"> <!-- Fixes favicon error -->
+    <style>
+        #chatbox { width: 100%; height: 300px; overflow-y: auto; border: 1px solid black; padding: 10px; }
+        .user-message { color: blue; font-weight: bold; }
+        .bot-message { color: green; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>Chatbot</h1>
+    
+    <div id="chatbox"></div>
+    
+    <input type="text" id="userInput" placeholder="Type your message here...">
+    <button id="sendButton">Send</button>
+    <button id="voiceButton">🎙️ Speak</button>
 
-        if (!sendButton || !voiceButton || !userInput || !chatbox) {
-            console.error("❌ Error: Missing required elements in HTML.");
-            return;
-        }
+    <!-- JavaScript Code -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Select elements after DOM is fully loaded
+            const sendButton = document.getElementById("sendButton");
+            const voiceButton = document.getElementById("voiceButton");
+            const userInput = document.getElementById("userInput");
+            const chatbox = document.getElementById("chatbox");
 
-        function sendMessage(message = null) {
-            let userMessage = message || userInput.value.trim();
-            if (!userMessage) return;
+            // Check if all required elements exist
+            if (!sendButton || !voiceButton || !userInput || !chatbox) {
+                console.error("❌ Error: Missing required elements in HTML.");
+                return;
+            }
 
-            let userDiv = document.createElement("div");
-            userDiv.textContent = "You: " + userMessage;
-            userDiv.classList.add("user-message");
-            chatbox.appendChild(userDiv);
+            function sendMessage(message = null) {
+                let userMessage = message || userInput.value.trim();
+                if (!userMessage) return;
 
-            fetch("https://smokeshop-chatbot.onrender.com/chat", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ "message": userMessage })
-            })
-            .then(response => response.json())
-            .then(data => {
-                let botDiv = document.createElement("div");
-                botDiv.textContent = "Bot: " + (data.response || "No response received");
-                botDiv.classList.add("bot-message");
-                chatbox.appendChild(botDiv);
-                chatbox.scrollTop = chatbox.scrollHeight;
-            })
-            .catch(error => {
-                console.error("Error:", error);
-                let errorDiv = document.createElement("div");
-                errorDiv.textContent = "Error: Unable to connect to chatbot.";
-                errorDiv.classList.add("error-message");
-                chatbox.appendChild(errorDiv);
+                let userDiv = document.createElement("div");
+                userDiv.textContent = "You: " + userMessage;
+                userDiv.classList.add("user-message");
+                chatbox.appendChild(userDiv);
+
+                fetch("https://smokeshop-chatbot.onrender.com/chat", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ "message": userMessage })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    let botDiv = document.createElement("div");
+                    botDiv.textContent = "Bot: " + (data.response || "No response received");
+                    botDiv.classList.add("bot-message");
+                    chatbox.appendChild(botDiv);
+                    chatbox.scrollTop = chatbox.scrollHeight;
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    let errorDiv = document.createElement("div");
+                    errorDiv.textContent = "Error: Unable to connect to chatbot.";
+                    errorDiv.classList.add("error-message");
+                    chatbox.appendChild(errorDiv);
+                });
+
+                userInput.value = "";
+            }
+
+            sendButton.addEventListener("click", function () {
+                sendMessage(userInput.value);
             });
 
-            userInput.value = "";
-        }
+            userInput.addEventListener("keypress", function (event) {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    sendMessage(userInput.value);
+                }
+            });
 
-        sendButton.addEventListener("click", function () {
-            sendMessage(userInput.value);
-        });
+            // 🎙️ FIX: Prevent multiple recognition starts
+            if ("webkitSpeechRecognition" in window) {
+                const recognition = new webkitSpeechRecognition();
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                recognition.lang = "en-US";
+                let isRecognizing = false; // Prevent duplicate recognition start
 
-        userInput.addEventListener("keypress", function (event) {
-            if (event.key === "Enter") {
-                event.preventDefault();
-                sendMessage(userInput.value);
+                voiceButton.addEventListener("click", function () {
+                    if (isRecognizing) {
+                        console.warn("Speech recognition is already running.");
+                        return;
+                    }
+                    isRecognizing = true;
+                    recognition.start();
+                    voiceButton.textContent = "🎙️ Listening...";
+                });
+
+                recognition.onresult = function (event) {
+                    const transcript = event.results[0][0].transcript;
+                    userInput.value = transcript;
+                    sendMessage(transcript);
+                    voiceButton.textContent = "🎙️ Speak";
+                };
+
+                recognition.onspeechend = function () {
+                    recognition.stop();
+                    isRecognizing = false;
+                    voiceButton.textContent = "🎙️ Speak";
+                };
+
+                recognition.onerror = function (event) {
+                    console.error("Voice recognition error:", event.error);
+                    isRecognizing = false;
+                    voiceButton.textContent = "🎙️ Speak";
+                    alert("Voice recognition error: " + event.error);
+                };
+            } else {
+                voiceButton.style.display = "none";
+                console.warn("⚠️ Voice recognition not supported in this browser.");
             }
         });
-
-        // 🎙️ FIX: Prevent multiple recognition starts
-        if ("webkitSpeechRecognition" in window) {
-            const recognition = new webkitSpeechRecognition();
-            recognition.continuous = false;
-            recognition.interimResults = false;
-            recognition.lang = "en-US";
-            let isRecognizing = false; // New flag to track recognition state
-
-            voiceButton.addEventListener("click", function () {
-                if (isRecognizing) {
-                    console.warn("Speech recognition is already running.");
-                    return;
-                }
-                isRecognizing = true;
-                recognition.start();
-                voiceButton.textContent = "🎙️ Listening...";
-            });
-
-            recognition.onresult = function (event) {
-                const transcript = event.results[0][0].transcript;
-                userInput.value = transcript;
-                sendMessage(transcript);
-                voiceButton.textContent = "🎙️ Speak";
-            };
-
-            recognition.onspeechend = function () {
-                recognition.stop();
-                isRecognizing = false; // Reset flag
-                voiceButton.textContent = "🎙️ Speak";
-            };
-
-            recognition.onerror = function (event) {
-                console.error("Voice recognition error:", event.error);
-                isRecognizing = false; // Reset flag
-                voiceButton.textContent = "🎙️ Speak";
-                alert("Voice recognition error: " + event.error);
-            };
-        } else {
-            voiceButton.style.display = "none";
-            console.warn("⚠️ Voice recognition not supported in this browser.");
-        }
-    });
-</script>
+    </script>
+</body>
+</html>
 

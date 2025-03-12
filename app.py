@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import openai
 import os
+from openai import OpenAIError  # ✅ Correct OpenAI error handling
 
 # ✅ Load API Key securely
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -19,7 +20,7 @@ CORS(app)
 def home():
     return "Chatbot is running! 🚀"
 
-# ✅ Chatbot API Route with Error Handling
+# ✅ Chatbot API Route with Corrected Error Handling
 @app.route("/chat", methods=["POST"])
 def chat():
     try:
@@ -42,7 +43,7 @@ def chat():
 
         return jsonify({"response": response["choices"][0]["message"]["content"]})
     
-    except openai.error.OpenAIError as e:
+    except OpenAIError as e:  # ✅ Fixed OpenAI error handling
         return jsonify({"error": f"OpenAI API Error: {str(e)}"}), 500
     except Exception as e:
         return jsonify({"error": f"Server Error: {str(e)}"}), 500

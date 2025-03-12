@@ -8,6 +8,9 @@ from dotenv import load_dotenv
 # Load API Key securely
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+@app.route("/", methods=["GET"])
+def home():
+    return "Chatbot is running! 🚀"
 
 openai.api_key = OPENAI_API_KEY
 

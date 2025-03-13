@@ -25,14 +25,13 @@ def chat():
         if not user_message:
             return jsonify({"error": "Message is empty"}), 400
 
-        # ✅ Use Together.AI API for LLaMA 3
+        # ✅ Use the correct LLaMA 3 model from Together.AI
         headers = {
             "Authorization": f"Bearer {TOGETHER_API_KEY}",
             "Content-Type": "application/json"
         }
         payload = {
-            "model": "togethercomputer/llama-3-8b-instruct",
-,
+            "model": "togethercomputer/llama-3-8b-instruct",  # ✅ Correct Model
             "messages": [{"role": "user", "content": user_message}],
             "max_tokens": 200
         }

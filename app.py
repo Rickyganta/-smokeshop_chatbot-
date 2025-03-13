@@ -31,7 +31,7 @@ def chat():
             "Content-Type": "application/json"
         }
         payload = {
-            "model": "togethercomputer/llama-3-8b-instruct",  # ✅ Correct Model
+            "model": "meta-llama/Llama-3-8B-Instruct",  # ✅ Correct Model
             "messages": [{"role": "user", "content": user_message}],
             "max_tokens": 200
         }

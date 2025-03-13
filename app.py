@@ -3,10 +3,10 @@ import os
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
-# ✅ Load Hugging Face API Key
-HUGGINGFACE_API_KEY = os.getenv("HUGGINGFACE_API_KEY")
-if not HUGGINGFACE_API_KEY:
-    raise ValueError("⚠️ ERROR: Hugging Face API Key is missing!")
+# ✅ Load Together.AI API Key
+TOGETHER_API_KEY = os.getenv("TOGETHER_API_KEY")
+if not TOGETHER_API_KEY:
+    raise ValueError("⚠️ ERROR: Together.AI API Key is missing!")
 
 # ✅ Create Flask app instance
 app = Flask(__name__)
@@ -14,7 +14,7 @@ CORS(app)
 
 @app.route("/", methods=["GET"])
 def home():
-    return "LLaMA 3 Chatbot is running! 🚀"
+    return "LLaMA 3 Chatbot is running via Together.AI! 🚀"
 
 @app.route("/chat", methods=["POST"])
 def chat():
@@ -25,26 +25,26 @@ def chat():
         if not user_message:
             return jsonify({"error": "Message is empty"}), 400
 
-        # ✅ Use the correct LLaMA 3 model from Hugging Face
+        # ✅ Use Together.AI API for LLaMA 3
         headers = {
-            "Authorization": f"Bearer {HUGGINGFACE_API_KEY}",
+            "Authorization": f"Bearer {TOGETHER_API_KEY}",
             "Content-Type": "application/json"
         }
         payload = {
-            "inputs": user_message,
-            "parameters": {"max_length": 200}
+            "model": "meta-llama/Llama-3-8B-Instruct",
+            "messages": [{"role": "user", "content": user_message}],
+            "max_tokens": 200
         }
 
-        # ✅ Call Hugging Face API with LLaMA 3 model
         response = requests.post(
-            "https://api-inference.huggingface.co/models/meta-llama/Llama-3-8B",  # ✅ Updated model
+            "https://api.together.ai/v1/chat/completions",
             headers=headers,
             json=payload
         )
 
         # ✅ Handle Response
         if response.status_code == 200:
-            bot_reply = response.json()[0]["generated_text"]
+            bot_reply = response.json()["choices"][0]["message"]["content"]
         else:
             bot_reply = f"⚠️ API Error: {response.json()}"
 

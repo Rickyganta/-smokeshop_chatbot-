@@ -36,7 +36,8 @@ def chat():
         }
 
         response = requests.post(
-            "https://api-inference.huggingface.co/models/meta-llama/Llama-3-8B",
+            "https://api-inference.huggingface.co/models/meta-llama/Llama-3-8B-Instruct"
+,
             headers=headers,
             json=payload
         )

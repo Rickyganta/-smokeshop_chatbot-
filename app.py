@@ -1,7 +1,7 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS
 import requests
 import os
+from flask import Flask, request, jsonify
+from flask_cors import CORS
 
 # ✅ Load Hugging Face API Key
 HUGGINGFACE_API_KEY = os.getenv("HUGGINGFACE_API_KEY")
@@ -25,7 +25,7 @@ def chat():
         if not user_message:
             return jsonify({"error": "Message is empty"}), 400
 
-        # ✅ Send request to Hugging Face API (LLaMA 3)
+        # ✅ Use the correct LLaMA 3 model from Hugging Face
         headers = {
             "Authorization": f"Bearer {HUGGINGFACE_API_KEY}",
             "Content-Type": "application/json"
@@ -35,9 +35,9 @@ def chat():
             "parameters": {"max_length": 200}
         }
 
+        # ✅ Call Hugging Face API with LLaMA 3 model
         response = requests.post(
-            "https://api-inference.huggingface.co/models/meta-llama/Llama-3-8B-Instruct"
-,
+            "https://api-inference.huggingface.co/models/meta-llama/Llama-3-8B",  # ✅ Updated model
             headers=headers,
             json=payload
         )
